@@ -120,7 +120,7 @@ class KHR3HV(object):
 
     def __init__(self, port="/dev/ttyUSB0"):
         self.port = port
-        self.motion_desc = {}
+        self.__motion_desc = {}
 
     def open(self):
         """Open the device."""
@@ -149,7 +149,7 @@ class KHR3HV(object):
             # If MotionData is empty, the slot is not used.
             if motion_data.getchildren():
                 # Slot is occupied, let's continue.
-                self.motion_desc[value.find("Name").text] = int(value.find("Number").text)
+                self.__motion_desc[value.find("Name").text] = int(value.find("Number").text)
 
 
     def play_motion(self, motion, timeout=None):
