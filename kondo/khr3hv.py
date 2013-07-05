@@ -133,6 +133,9 @@ class KHR3HV(object):
 
     def parse_h4p(self, path):
         """Parse Heart-to-Heart project file for motion information."""
+        def callback_factory(number):
+            return lambda: self.play_motion(number)
+
         tree = ET.parse(path)
         root = tree.getroot()
         if root.tag != "Rcb4":
@@ -158,7 +161,7 @@ class KHR3HV(object):
                 # Inject lambda function for short-hand
                 method_name = name.split("_", 1)[-1].split("(")[0].lower()
                 method_name = method_name.replace(" ", "_").replace("-", "_")
-                setattr(self, method_name, lambda m: self.play_motion(m))
+                setattr(self, method_name, callback_factory(number))
 
     def play_motion(self, motion, timeout=None):
         """Initiate motion given by its number."""
