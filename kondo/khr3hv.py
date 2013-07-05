@@ -149,8 +149,14 @@ class KHR3HV(object):
             # If MotionData is empty, the slot is not used.
             if motion_data.getchildren():
                 # Slot is occupied, let's continue.
-                self.__motion_desc[value.find("Name").text] = int(value.find("Number").text)
+                name = value.find("Name").text
+                number = int(value.find("Number").text)
+                self.__motion_desc[name] = number
 
+                # Inject lambda function for short-hand
+                method_name = name.split("_", 1)[-1].split("(")[0].lower()
+                method_name = method_name.replace(" ", "_").replace("-", "_")
+                setattr(self, method_name, lambda m: self.play_motion(m))
 
     def play_motion(self, motion, timeout=None):
         """Initiate motion given by its number."""
