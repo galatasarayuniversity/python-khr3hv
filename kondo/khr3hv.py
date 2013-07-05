@@ -3,6 +3,8 @@
 import serial
 import time
 
+import xml.etree.ElementTree as ET
+
 class KHR3HV(object):
     """Class for accessing Kondo KHR3HV humanoid robot."""
     # Byte sequences defining motions embedded in the device
@@ -118,10 +120,37 @@ class KHR3HV(object):
 
     def __init__(self, port="/dev/ttyUSB0"):
         self.port = port
+        self.motion_desc = {}
+
+    def open(self):
+        """Open the device."""
         self.device = serial.Serial(self.port, 115200,
                                     serial.EIGHTBITS,
                                     serial.PARITY_EVEN,
                                     serial.STOPBITS_ONE, 1)
+
+    def parse_h4p(self, path):
+        """Parse Heart-to-Heart project file for motion information."""
+        tree = ET.parse(path)
+        root = tree.getroot()
+        if root.tag != "Rcb4":
+            # Invalid file, skip
+            print "Invalid .h4p file %s, skipping." % path
+            return
+
+        motions = root.find("MotionDataCollection")
+
+        for motion in motions.getchildren():
+            key, value = motion.getchildren()
+            # key's tag is slot name, e.g. M008
+            # value contains Number, Name, Date, MotionData, etc.
+
+            motion_data = value.find("MotionData")
+            # If MotionData is empty, the slot is not used.
+            if motion_data.getchildren():
+                # Slot is occupied, let's continue.
+                self.motion_desc[value.find("Name").text] = int(value.find("Number").text)
+
 
     def play_motion(self, motion, timeout=None):
         """Initiate motion given by its number."""
